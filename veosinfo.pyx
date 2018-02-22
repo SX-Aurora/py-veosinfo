@@ -1,11 +1,31 @@
+##########################################################################
+# Python bindings to libveosinfo
 #
+# Provides various bits of information about the SX-Aurora
+# vector engines (VEs) in the system.
 #
+# (C)opyright 2018 Erich Focht
 #
+# This program module is free software; you can redistribute it
+# and/or modify it under the terms of the GNU General Public
+# License as published by the Free Software Foundation; either version
+# 2.1 of the License, or (at your option) any later version.
+#
+# The VEOS information library Python bindings module is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the VEOS information library python bindings module; if not,
+# see <http://www.gnu.org/licenses/>.
+##########################################################################
 
 from posix.time cimport timeval
 from posix.resource cimport rlimit
 
-
+ctypedef int pid_t
+        
 cdef extern from "<sched.h>":
     enum: __CPU_SETSIZE
     enum: __NCPUBITS
@@ -13,9 +33,7 @@ cdef extern from "<sched.h>":
     ctypedef struct cpu_set_t:
         __cpu_mask __bits[__CPU_SETSIZE / __NCPUBITS]
 
-ctypedef int pid_t
-        
-cdef extern from "veosinfo.h":
+cdef extern from "<veosinfo/veosinfo.h>":
     enum: VE_MAX_NODE
     enum: VE_PATH_MAX
     enum: VE_FILE_MAX
@@ -108,9 +126,6 @@ cdef extern from "veosinfo.h":
         unsigned long btime
         unsigned int processes
 
-
-
-
     struct ve_vmstat:
         unsigned long pgfree
         unsigned long pgscan_direct
@@ -120,7 +135,6 @@ cdef extern from "veosinfo.h":
         unsigned long pgfault
         unsigned long pgmajfault
         unsigned long pgscan_kswapd
-
 
     struct ve_mapheader:
         unsigned int length
@@ -389,4 +403,3 @@ def vmstat_info(int nodeid):
         raise RuntimeError("ve_vmstat_info failed")
     return s
 
-    
