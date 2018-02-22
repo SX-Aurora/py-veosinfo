@@ -2,7 +2,44 @@
 
 Python bindings to libveosinfo provided functionality as delivered to Aurora with the veosinfo RPM.
 
+
 ## Functions
+
+acct(int nodeid, char *filename):
+
+arch_info(int nodeid):
+
+check_pid(int nodeid, int pid):
+
+core_info(int nodeid):
+
+cpu_info(int nodeid):
+
+cpufreq_info(int nodeid):
+
+create_process(int nodeid, int pid, int flag):
+
+loadavg_info(int nodeid):
+
+mem_info(int nodeid):
+
+node_info():
+
+pidstat_info(int nodeid, pid_t pid):
+
+read_fan(int nodeid):
+
+read_temp(int nodeid):
+
+read_voltage(int nodeid):
+
+stat_info(int nodeid):
+
+uptime_info(int nodeid):
+
+vmstat_info(int nodeid):
+
+
 
 ## Usage examples
 ```python

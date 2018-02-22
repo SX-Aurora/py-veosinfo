@@ -15,7 +15,13 @@
 # see <http://www.gnu.org/licenses/>.
 #
 # (C)opyright 2018 Erich Focht
+#
+# The include file <veosinfo/veosinfo.h> required for building this
+# package is licensed under the LGPLv2.1 and copyright by NEC Corporation.
+# It is available in the RPM veosinfo-devel.
+#
 #-------------------------------------------------------------------------
+#
 # Python bindings for libveosinfo
 #
 # Provides various bits of information about the SX-Aurora
@@ -279,6 +285,7 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_uptime_info(int, double *)
     int ve_vmstat_info(int, ve_vmstat *)
 
+    # functions below have no python equivalent, yet
     int ve_get_rusage(int, pid_t, ve_get_rusage_info *)
     int ve_map_info(int, pid_t, ve_mapheader *)
     int ve_pidstatus_info(int, pid_t, ve_pidstatus *)
@@ -287,7 +294,7 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_sched_getaffinity(int nodeid, pid_t pid, size_t cpusetsize, cpu_set_t *mask)
     int ve_sched_setaffinity(int nodeid, pid_t pid, size_t cpusetsize, cpu_set_t *mask)
 
-    
+
 from libc.stdint cimport intptr_t
 
 def acct(int nodeid, char *filename):
