@@ -1,15 +1,9 @@
 ##########################################################################
-# Python bindings to libveosinfo
-#
-# Provides various bits of information about the SX-Aurora
-# vector engines (VEs) in the system.
-#
-# (C)opyright 2018 Erich Focht
 #
 # This program module is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public
 # License as published by the Free Software Foundation; either version
-# 2.1 of the License, or (at your option) any later version.
+# 2 of the License, or (at your option) any later version.
 #
 # The VEOS information library Python bindings module is distributed
 # in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
@@ -19,6 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with the VEOS information library python bindings module; if not,
 # see <http://www.gnu.org/licenses/>.
+#
+# (C)opyright 2018 Erich Focht
+#-------------------------------------------------------------------------
+# Python bindings for libveosinfo
+#
+# Provides various bits of information about the SX-Aurora
+# vector engines (VEs) in the system.
+#
 ##########################################################################
 
 from posix.time cimport timeval

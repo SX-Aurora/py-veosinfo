@@ -13,7 +13,7 @@ ext_modules=[
 setup(
     name = "pyVeosInfo",
     version = "1.0",
-    ext_modules = cythonize(ext_modules)
+    ext_modules = cythonize(ext_modules),
     packages = ["veosinfo"],
     author = "Erich Focht",
     author_email = "efocht@gmail.com",
