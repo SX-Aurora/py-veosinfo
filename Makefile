@@ -13,5 +13,8 @@ test:
 clean:
 	rm -f *.so veosinfo.c
 
-.PHONY: test clean
+install:
+	CFLAGS="-I/opt/nec/ve/veos/include" LDFLAGS="-L/opt/nec/ve/veos/lib64" python setup.py install
+
+.PHONY: test clean install
 

@@ -31,6 +31,7 @@
 
 from posix.time cimport timeval
 from posix.resource cimport rlimit
+from libc.stdint cimport *
 
 ctypedef int pid_t
         
@@ -50,6 +51,7 @@ cdef extern from "<veosinfo/veosinfo.h>":
     enum: VMFLAGS_LENGTH
     enum: VE_MAX_CACHE
     enum: VE_DATA_LEN
+    enum: VE_MAX_REGVALS
     enum: MAX_DEVICE_LEN
     enum: MAX_POWER_DEV
     enum: VE_PAGE_SIZE
@@ -284,6 +286,7 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_stat_info(int, ve_statinfo *)
     int ve_uptime_info(int, double *)
     int ve_vmstat_info(int, ve_vmstat *)
+    int ve_get_regvals(int, pid_t, int, int *, uint64_t *)
 
     # functions below have no python equivalent, yet
     int ve_get_rusage(int, pid_t, ve_get_rusage_info *)
@@ -412,3 +415,35 @@ def vmstat_info(int nodeid):
         raise RuntimeError("ve_vmstat_info failed")
     return s
 
+#
+# VE register IDs usable to retrieve registers with ve_get_regvals()
+#
+cpdef enum VERegIds:
+    USRCC = 0,
+    PMC00, PMC01, PMC02, PMC03, PMC04, PMC05, PMC06,
+    PMC07, PMC08, PMC09, PMC10, PMC11, PMC12, PMC13,
+    PMC14, PMC15,
+    PSW, EXS, IC, ICE, VIXR, VL, SAR,
+    PMMR, PMCR00, PMCR01, PMCR02, PMCR03, PMCR04,
+    SR00, SR01, SR02, SR03, SR04, SR05, SR06, SR07,
+    SR08, SR09, SR10, SR11, SR12, SR13, SR14, SR15,
+    SR16, SR17, SR18, SR19, SR20, SR21, SR22, SR23,
+    SR24, SR25, SR26, SR27, SR28, SR29, SR30, SR31,
+    SR32, SR33, SR34, SR35, SR36, SR37, SR38, SR39,
+    SR40, SR41, SR42, SR43, SR44, SR45, SR46, SR47,
+    SR48, SR49, SR50, SR51, SR52, SR53, SR54, SR55,
+    SR56, SR57, SR58, SR59, SR60, SR61, SR62, SR63
+
+def get_regvals(int nodeid, pid_t pid, list regid):
+    cdef uint64_t ve_regval[VE_MAX_REGVALS]
+    cdef int ve_regid[VE_MAX_REGVALS], i = 0
+    regid = regid[:VE_MAX_REGVALS]
+    for rid in regid:
+        ve_regid[i] = regid[i]
+        i += 1
+    if ve_get_regvals(nodeid, pid, len(regid), ve_regid, &ve_regval[0]):
+        raise RuntimeError("ve_get_regvals failed")
+    cdef list regval = list()
+    for i in xrange(len(regid)):
+        regval.append(ve_regval[i])
+    return regval

@@ -5,39 +5,41 @@ Python bindings to libveosinfo provided functionality as delivered to Aurora wit
 
 ## Functions
 
-acct(int nodeid, char *filename):
+`acct(int nodeid, char *filename)`:
 
-arch_info(int nodeid):
+`arch_info(int nodeid)`:
 
-check_pid(int nodeid, int pid):
+`check_pid(int nodeid, int pid)`:
 
-core_info(int nodeid):
+`core_info(int nodeid)`:
 
-cpu_info(int nodeid):
+`cpu_info(int nodeid)`:
 
-cpufreq_info(int nodeid):
+`cpufreq_info(int nodeid)`:
 
-create_process(int nodeid, int pid, int flag):
+`create_process(int nodeid, int pid, int flag)`:
 
-loadavg_info(int nodeid):
+`get_regvals(int nodeid, pid_t pid, list regid)`:
 
-mem_info(int nodeid):
+`loadavg_info(int nodeid)`:
 
-node_info():
+`mem_info(int nodeid)`:
 
-pidstat_info(int nodeid, pid_t pid):
+`node_info()`:
 
-read_fan(int nodeid):
+`pidstat_info(int nodeid, pid_t pid)`:
 
-read_temp(int nodeid):
+`read_fan(int nodeid)`:
 
-read_voltage(int nodeid):
+`read_temp(int nodeid)`:
 
-stat_info(int nodeid):
+`read_voltage(int nodeid)`:
 
-uptime_info(int nodeid):
+`stat_info(int nodeid)`:
 
-vmstat_info(int nodeid):
+`uptime_info(int nodeid)`:
+
+`vmstat_info(int nodeid)`:
 
 
 
@@ -59,6 +61,9 @@ vmstat_info(int nodeid):
 
 >>> cpufreq_info(0)
 1400L
+
+>>> get_regvals(0, 246283, [USRCC, PMC00, PMC01])
+[37939912918L, 38751941050L, 15117305941L]
 
 >>> loadavg_info(0)
 {'av_5': 0.0, 'av_15': 0.0, 'total_proc': 0, 'av_1': 0.0, 'runnable': 0}
