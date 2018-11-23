@@ -31,7 +31,11 @@
 
 from posix.time cimport timeval
 from posix.resource cimport rlimit
-from libc.stdint cimport *
+from libc.stdint cimport uint64_t
+from libc.string cimport memset
+import os
+import os.path
+import time
 
 ctypedef int pid_t
         
@@ -41,6 +45,9 @@ cdef extern from "<sched.h>":
     ctypedef unsigned long int __cpu_mask
     ctypedef struct cpu_set_t:
         __cpu_mask __bits[__CPU_SETSIZE / __NCPUBITS]
+
+cdef extern from "<sys/param.h>":
+    enum: PATH_MAX
 
 cdef extern from "<veosinfo/veosinfo.h>":
     enum: VE_MAX_NODE
@@ -297,8 +304,9 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_sched_getaffinity(int nodeid, pid_t pid, size_t cpusetsize, cpu_set_t *mask)
     int ve_sched_setaffinity(int nodeid, pid_t pid, size_t cpusetsize, cpu_set_t *mask)
 
+# declared in internal include file, but useful little helper function
+cdef extern int ve_sysfs_path_info(int nodeid, char *ve_sysfs_path)
 
-from libc.stdint cimport intptr_t
 
 def acct(int nodeid, char *filename):
     if ve_acct(nodeid, filename):
@@ -447,3 +455,72 @@ def get_regvals(int nodeid, pid_t pid, list regid):
     for i in xrange(len(regid)):
         regval.append(ve_regval[i])
     return regval
+
+#
+# Return VE sysfs path corresponding to a certain nodeid
+#
+def ve_sysfs_path(int nodeid):
+    cdef char sysfs_path[PATH_MAX]
+    memset(sysfs_path, 0, PATH_MAX)
+    if ve_sysfs_path_info(nodeid, &sysfs_path[0]):
+        raise RuntimeError("ve_sysfs_path_info failed")
+    return sysfs_path
+
+#
+# List of task IDs running on a certain VE node.
+#
+def ve_pids(int nodeid):
+    sysfs_path = ve_sysfs_path(nodeid)
+    pids = list()
+    with open(os.path.join(sysfs_path, "task_id_all"), "r") as f:
+        for line in f:
+            line = line.rstrip(os.linesep)
+            for l in line.split(" "):
+                try:
+                    pids.append(int(l))
+                except:
+                    pass
+    return pids
+
+
+VEREGS = [USRCC, PMMR, PMC00, PMC01, PMC02, PMC03, PMC04, PMC05, PMC06,
+          PMC07, PMC08, PMC09, PMC10, PMC11, PMC12, PMC13, PMC14, PMC15]
+
+PMC_NAME = [ { 0:    "EX"},                                                # 00
+             { 0:    "VX"},                                                # 01
+             { 0:  "FPEC"},                                                # 02
+             { 0:    "VE",              2: "L1IMC"},                       # 03
+             { 0:  "VECC",              2: "L1IAC"},                       # 04
+             { 0: "L1MCC", 1:  "L2MCC", 2: "L1OMC",             8: "UXC"}, # 05
+             { 0:   "VE2",              2: "L1OAC",             8: "UEC"}, # 06
+             { 0: "VAREC", 1: "L1IMCC", 2:  "L2MC"},                       # 07
+             { 0: "VLDEC", 1: "L1OMCC", 2:  "L2AC"},                       # 08
+             { 0:  "PCCC", 1:   "LTRC", 2:  "BREC", 3: "SARCC"},           # 09
+             { 0: "VLDCC", 1:   "STRC", 2:  "BPFC", 3: "IPHCC"},           # 10
+             { 0:  "VLEC",              2:  "VLXC"},                       # 11
+             { 0: "VLCME", 1: "VLCME2", 2: "VLCMX", 3: "VLCMX2"},          # 12
+             { 0: "FMAEC",              2: "FMAXC"},                       # 13
+             { 0: "PTCC"},                                                 # 14
+             { 0: "TTCC"}                                                  # 15
+]
+
+
+def ve_pid_perf(int nodeid, int pid):
+    """
+    Create a dict with performance counter values for
+    a certain pid on a VE node.
+    """
+    res = dict()
+    regval = get_regvals(nodeid, pid, VEREGS)
+    res["T"] = time.time()
+    res["USRCC"] = regval[0]
+    pmmr = regval[1]
+    for i in xrange(16):
+        mode = (pmmr >> (60 - (i * 4))) & 3
+        if mode in PMC_NAME[i]:
+            regname = PMC_NAME[i][mode]
+        else:
+            raise RuntimeError("Illegal mode in PMMR: PMC%d mode=%d" % i, mode)
+        res[regname] = regval[2 + i]
+    return res
+
