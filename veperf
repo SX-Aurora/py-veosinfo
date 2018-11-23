@@ -1,4 +1,21 @@
 #!/usr/bin/python
+#
+# Copyright (C) 2018 Erich Focht
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 
 import argparse
 from veosinfo import *
@@ -94,10 +111,10 @@ def print_label():
          "VTIMERATIO", "L1CMISS", "PORTCONF", "VLLCHIT", "comm")
 
 #
-###############
+################################################################################
 #
 
-USAGE = """Show performance metrics of VE tasks.
+DESCR = """Show performance metrics of VE tasks.
 
 VEOS allows to read performance counters of own VE processes from the VH
 with no or extremely low overhead for the VE processes. Root can access
@@ -105,19 +122,6 @@ all VE processes' metrics and will see all VE tasks.
 
 The MOPS and MFLOPS metrics are aggregated per node at the end of each
 node output block.
-
-Usage:
-------
-
-%s [--delay|-d <SECONDS>] [--node|-n <VENODEID>] [<INTERVALS>]
-
-Options:
---------
-
-   --delay|-d <SECONDS> : interval between measurements
-   --node|-n <VENODEID> : VE node ID(s) for measurement. Multiple nodes
-                          can be specified by repeating the -n options.
-   <INTERVALS>          : number of measurement intervals to make before exiting.
 
 Displayed metrics:
 ------------------
@@ -134,19 +138,24 @@ L1CMISS:     L1 cache miss time [percent]
 PORTCONF:    CPU port conflict time [percent]
 VLLCHIT:     Vector load LLC hits [percent] (counter not active with MPI)
 
+The PMMR register of each VE core is controlling Which performance metrics
+are actually active. Currently there is no easy way to control this register
+from user side, MPI and non-MPI programs might measure slightly different
+metrics.
 """
 
-parser = argparse.ArgumentParser( description=USAGE )
+parser = argparse.ArgumentParser( description=DESCR,
+                                  formatter_class=argparse.RawTextHelpFormatter )
 parser.add_argument("-d", "--delay", type=int, default=[2], nargs=1, help="Measurement interval [seconds]. Default: 2s.")
 parser.add_argument("-n", "--node", action="append", help="VE Node ID to be included into measurement. Default: all nodes.")
-args, other = parser.parse_known_args()
-
+parser.add_argument("other", type=int, nargs='?', metavar='INTERVALS', help="number of measurement intervals before exiting")
+args, rest = parser.parse_known_args()
 
 DELAY = args.delay[0]
 INTERV = -1
-if other is not None:
+if args.other is not None:
     try:
-        INTERV = int(other[0]) + 1
+        INTERV = args.other + 1
     except:
         pass
 
