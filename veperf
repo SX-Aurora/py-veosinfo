@@ -26,7 +26,10 @@ def calc_metrics(nodeid, old, new):
     clck_hz = clck * 1000000
     for _r in ["EX", "VX", "VE", "FMAEC", "FPEC", "USRCC", "VECC",
               "L1MCC", "PCCC", "VLCME", "VLEC", "T"]:
-        exec("d%s = new.get(\"%s\", 0) - old.get(\"%s\", 0)" % (_r, _r, _r))
+        exec("d%s = float(new.get(\"%s\", 0) - old.get(\"%s\", 0))" % (_r, _r, _r))
+        #exec("print \"d%s=%%r new %s=%%r old %s=%%r\" %% (d%s, new.get(\"%s\", 0), old.get(\"%s\", 0))" %
+        #     (_r, _r, _r, _r, _r, _r))
+
 
     r["USRSEC"] = new.get("USRCC", 0) / clck_hz
     r["USRTIME"] = dUSRCC / clck_hz
@@ -36,14 +39,14 @@ def calc_metrics(nodeid, old, new):
         r["EFFTIME"] = r["USRTIME"] / r["ELAPSED"]
 
     if dUSRCC > 0:
-        r["MOPS"] = (dEX - dVX + dVE + dFMAEC) / dUSRCC * clck
-        r["MFLOPS"] = dFPEC / dUSRCC * clck
-        r["VTIMERATIO"] = dVECC / dUSRCC * 100
-        r["L1CACHEMISS"] = dL1MCC / dUSRCC * 100
-        r["CPUPORTCONF"] = dPCCC / dUSRCC * 100
+        r["MOPS"] = (dEX - dVX + dVE + dFMAEC) * clck / dUSRCC
+        r["MFLOPS"] = dFPEC * clck / dUSRCC
+        r["VTIMERATIO"] = dVECC * 100 / dUSRCC
+        r["L1CACHEMISS"] = dL1MCC * 100 / dUSRCC
+        r["CPUPORTCONF"] = dPCCC * 100 / dUSRCC
 
     if dEX > 0:
-        r["VOPRAT"] = dVE / (dEX - dVX + dVE) * 100
+        r["VOPRAT"] = dVE * 100 / (dEX - dVX + dVE)
 
     if dVX > 0:
         r["AVGVL"] = dVE / dVX
@@ -72,32 +75,65 @@ def print_metrics():
     for nodeid in sorted(METR.keys()):
         s_mops = 0
         s_mflops = 0
-        print "VE NODE ID %d" % nodeid
+        print "-> VE%d" % nodeid
         for pid in sorted(METR[nodeid].keys()):
             m = METR[nodeid][pid]
             comm = get_pid_comm(pid)
-            print "%-8d  %8.2fs  %7.3f  %7.0f  %8.0f  %5.0f  %7.1f%%  %9.1f%%  %6.0f%%  %7.0f%%  %-10s" % \
+            print "%-8d  %8.2fs  %7.3f  %7.0f  %8.0f  %5.0f  %7.1f%%  %9.1f%%  %6.0f%%  %7.0f%%  %7.0f%%  %-10s" % \
                 (pid, m["USRSEC"], m.get("EFFTIME", 0), m.get("MOPS", 0), m.get("MFLOPS", 0),
                  m.get("AVGVL", 0), m.get("VOPRAT", 0), m.get("VTIMERATIO", 0),
-                 m.get("L1CACHEMISS", 0), m.get("CPUPORTCONF", 0), comm)
+                 m.get("L1CACHEMISS", 0), m.get("CPUPORTCONF", 0), m.get("VLDLLCHIT", 0), comm)
             s_mops += m.get("MOPS", 0)
             s_mflops += m.get("MFLOPS", 0)
-        print "SUM: MOPS=%-8.0f MFLOPS=%-8.0f" % (s_mops, s_mflops)
+        print "SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f" % (nodeid, s_mops, s_mflops)
 
 
 def print_label():
-    print "%-8s  %9s  %7s  %7s  %8s  %5s  %8s  %10s  %7s  %8s  %-10s" % \
-        ("pid", "USRSEC", "EFFTIME", "MOPS", "MFLOPS",
-         "AVGVL", "VOPRAT", "VTIMERATIO", "L1CMISS", "PORTCONF", "comm")
+    print "%-8s  %9s  %7s  %7s  %8s  %5s  %8s  %10s  %7s  %8s  %8s  %-10s" % \
+        ("pid", "USRSEC", "EFFTIME", "MOPS", "MFLOPS", "AVGVL", "VOPRAT",
+         "VTIMERATIO", "L1CMISS", "PORTCONF", "VLLCHIT", "comm")
 
 #
 ###############
 #
 
-USAGE = """Periodically measure performance metrics of VE processes
+USAGE = """Show performance metrics of VE tasks.
+
+VEOS allows to read performance counters of own VE processes from the VH
+with no or extremely low overhead for the VE processes. Root can access
+all VE processes' metrics and will see all VE tasks.
+
+The MOPS and MFLOPS metrics are aggregated per node at the end of each
+node output block.
 
 Usage:
-%s [--delay|-d <SECONDS>] [--node|-n <VENODEID>]
+------
+
+%s [--delay|-d <SECONDS>] [--node|-n <VENODEID>] [<INTERVALS>]
+
+Options:
+--------
+
+   --delay|-d <SECONDS> : interval between measurements
+   --node|-n <VENODEID> : VE node ID(s) for measurement. Multiple nodes
+                          can be specified by repeating the -n options.
+   <INTERVALS>          : number of measurement intervals to make before exiting.
+
+Displayed metrics:
+------------------
+
+USRSEC:      Task's user time on VE
+EFFTIME:     Effective time: ratio between user and elapsed time.
+             A value lower than 1.0 is a sign for syscalls.
+MOPS:        Millions of Operations Per Second
+MFLOPS:      Millions of Floating Point Ops Per Second
+AVGVL:       Average vector length
+VOPRAT:      Vector operation ratio [percent]
+VTIMERATIO:  Vector time ratio (vector time / user time) [percent]
+L1CMISS:     L1 cache miss time [percent]
+PORTCONF:    CPU port conflict time [percent]
+VLLCHIT:     Vector load LLC hits [percent] (counter not active with MPI)
+
 """
 
 parser = argparse.ArgumentParser( description=USAGE )
@@ -107,6 +143,12 @@ args, other = parser.parse_known_args()
 
 
 DELAY = args.delay[0]
+INTERV = -1
+if other is not None:
+    try:
+        INTERV = int(other[0]) + 1
+    except:
+        pass
 
 ni = node_info()
 ve_info = dict()
@@ -131,13 +173,13 @@ for nodeid in nodeids:
     PREV[nodeid] = dict()
     METR[nodeid] = dict()
 
+cnt = 0
 while 1:
     TSTART = time.time()
-    print_label()
     
     # loop over VE node IDs
     for nodeid in nodeids:
-        pids = ve_pids(nodeid)
+        pids = sorted(ve_pids(nodeid))
 
         for prevpid in PREV[nodeid].keys():
             if prevpid not in pids:
@@ -152,12 +194,12 @@ while 1:
             PREV[nodeid][pid] = DATA[nodeid][pid]
             del DATA[nodeid][pid]
 
-    print_metrics()
+    if cnt > 0:
+        print_label()
+        print_metrics()
 
     TEND = time.time()
-    time.sleep(max(DELAY - (TEND - TSTART), 0))
-
-
-
-
-
+    cnt += 1
+    if cnt == INTERV:
+        break
+    time.sleep(max(DELAY - (TEND - TSTART), 0.5))
