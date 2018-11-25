@@ -148,14 +148,14 @@ parser = argparse.ArgumentParser( description=DESCR,
                                   formatter_class=argparse.RawTextHelpFormatter )
 parser.add_argument("-d", "--delay", type=int, default=[2], nargs=1, help="Measurement interval [seconds]. Default: 2s.")
 parser.add_argument("-n", "--node", action="append", help="VE Node ID to be included into measurement. Default: all nodes.")
-parser.add_argument("other", type=int, nargs='?', metavar='INTERVALS', help="number of measurement intervals before exiting")
+parser.add_argument("interv", type=int, nargs='?', metavar='INTERVALS', help="number of measurement intervals before exiting")
 args, rest = parser.parse_known_args()
 
 DELAY = args.delay[0]
 INTERV = -1
-if args.other is not None:
+if args.interv is not None:
     try:
-        INTERV = args.other + 1
+        INTERV = args.interv + 1
     except:
         pass
 
@@ -197,7 +197,10 @@ while 1:
                     del METR[nodeid][prevpid]
 
         for pid in pids:
-            DATA[nodeid][pid] = ve_pid_perf(nodeid, pid)
+            try:
+                DATA[nodeid][pid] = ve_pid_perf(nodeid, pid)
+            except:
+                continue
             if pid in PREV[nodeid].keys():
                 METR[nodeid][pid] = calc_metrics(nodeid, PREV[nodeid][pid], DATA[nodeid][pid])
             PREV[nodeid][pid] = DATA[nodeid][pid]
