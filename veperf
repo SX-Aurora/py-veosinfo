@@ -20,6 +20,12 @@
 import argparse
 from veosinfo import *
 import os, time
+import signal
+import sys
+
+
+def sigint_handler(signum, frame):
+    sys.exit()
 
 
 def calc_metrics(nodeid, old, new):
@@ -144,6 +150,7 @@ from user side, MPI and non-MPI programs might measure slightly different
 metrics.
 """
 
+signal.signal(signal.SIGINT, sigint_handler)
 parser = argparse.ArgumentParser( description=DESCR,
                                   formatter_class=argparse.RawTextHelpFormatter )
 parser.add_argument("-d", "--delay", type=int, default=[2], nargs=1, help="Measurement interval [seconds]. Default: 2s.")
