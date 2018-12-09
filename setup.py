@@ -52,8 +52,9 @@ setup(
     author = "Erich Focht",
     author_email = "efocht@gmail.com",
     license = "GPLv2",
-    description = "Python bindings for the veosinfo library",
+    description = "Python bindings for the veosinfo library for the SX-Aurora Vector Engine",
     long_description = _long_descr,
+    data_files = [("share/py-veosinfo", ["README.md"])],
     url = "https://github.com/sx-aurora/py-veosinfo",
     classifiers=[
       'Development Status :: 4 - Beta',
