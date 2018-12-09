@@ -167,6 +167,18 @@ Example:
 Returns a dict with statistics of the VE process specified by *pid* on
 the VE node *nodeid*.
 
+Example:
+```
+>>> pidstat_info(0, 334575)
+{'min_flt': 0L, 'cutime': 0L, 'rss': 7680000, 'endcode': 105553117303192L, 'ksteip': 139716362733200L,
+ 'wchan': 0L, 'cguest_time': 0, 'start_time': 2709686L, 'cstime': 0L, 'maj_delta': 0L, 'cmaj_flt': 0L,
+ 'nswap': 0L, 'cmin_flt': 0L, 'stime': 0L, 'startstack': 106652627894256L, 'kstesp': 106652627890808L,
+ 'startcode': 105553116266496L, 'guest_time': 0, 'utime': 36888115L, 'cnswap': 0L, 'min_delta': 0L,
+ 'rsslim': 18446744073709551615L, 'maj_flt': 0L, 'rt_priority': 0, 'cmd': 'sgemm', 'priority': 20,
+ 'blkio': 0L, 'state': 82, 'flags': 0L, 'whole': False, 'policy': 0, 'ppid': 1, 'vsize': 7864320000L,
+ 'processor': 0, 'itrealvalue': 0L, 'nice': 0}
+```
+
 
 ### `read_fan(int nodeid)`
 
