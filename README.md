@@ -55,7 +55,7 @@ certain C library functions, but transform return structure data
 into dicts, etc.
 
 
-## Functions
+## Functions (from libveosinfo)
 
 The usage example outputs have been slightly edited to fit better
 on screen.
@@ -294,3 +294,75 @@ Example:
  'pgfault': 0L, 'pgscan_kswapd': 0L, 'pgsteal': 0L, 'pgfree': 0L}
 ```
 
+### `ve_sysfs_path(int nodeid)`
+
+Return VE sysfs path corresponding to a certain VE *nodeid*.
+
+Example:
+```
+>>> ve_sysfs_path(0)
+'/sys/devices/pci0000:64/0000:64:00.0/0000:65:00.0/ve/ve1'
+```
+
+
+## Added functionality beyond libveosinfo
+
+
+### VE Register Offsets
+
+The VE registers readable with `get_regvals()` must be addressed with
+their offsets in the register "file". These offsets are available in
+the Python *veosinfo* module as constants. Their names are the
+symbolic names used inside VEOS:
+
+* `USRCC`: User Clock Counter.
+* `PMC00 - PMC15`: Performance Monitoring Counters.
+* `PSW`: Process Status Word.
+* `EXS`: Execution Status and Control Register.
+* `IC`: Instruction Counter or instruction pointer.
+* `ICE`: Exception IC Register, approximate instruction counter at an exception.
+* `VIXR`: Vector Index Register, used for indirect access to vector registers.
+* `VL`: Vector Length Register.
+* `SAR`: Store Address Register, holds an address for generating address match interrupts for store operations to it.
+* `PMMR`: Performance Monitoring Mode Register.
+* `PMCR00 - PMCR04`: Performance Monitoring Configuration Registers.
+* `SR00 - SR63`: Scalar Registers.
+
+
+### `ve_pids(int nodeid)`
+
+List of task IDs running on a certain VE node. This is created by
+reading the file *task_id_all* from the directory returned by
+*ve_sysfs_path()*.
+
+Example:
+```
+>>> ve_pids(0)
+[298038, 298002]
+```
+
+
+### `ve_pid_perf(int nodeid, int pid)`
+
+Create a dict with performance counter values for a certain *pid* on a
+VE *nodeid*. The counters correspond to the settings in the *PMMR*
+register, which decide upon the counters actually measured in the
+various *PMC* registers. *ve_pid_perf()* also adds the key "T" which
+contains the epoch (time in seconds since January 1, 12:00am 1970) at
+the measurement.
+
+Consecutive calls of *ve_pid_perf()* are used to calculate performance
+metrics of running VE programs in the tools *veperf*.
+
+Example:
+```
+>>> ve_pid_perf(0, 298002)
+{'VLEC': 474579296208L, 'VLCME': 19891534L, 'VE2': 8062493240158L, 'VE': 8062492910686L,
+ 'PCCC': 37961384L, 'VECC': 79381274156L, 'VLDEC': 212519229L, 'USRCC': 79385051298L,
+ 'FPEC': 15167113230887L, 'FMAEC': 7583557736960L, 'EX': 81071288934L, 'TTCC': 0L,
+ 'VX': 31640583719L, 'L1MCC': 270252L, 'VAREC': 79167929328L, 'VLDCC': 30875413736L,
+ 'PTCC': 0L, 'T': 1544384688.252721}
+```
+
+For an explanation of the meaning of the performance counters, please
+consult the "SX-Aurora TSUBASA Architectur Guide".
