@@ -15,6 +15,31 @@ on the SX-Aurora Vector Engines located in the current host:
 
 Not all calls of libveosinfo are implemented in these Python bindings.
 
+
+## Build / Install
+
+When installing from PYPI the module requires
+the package *veosinfo-devel* to be installed.
+
+```
+pip install py-veosinfo
+```
+
+The module can be built from the cloned github repository, in that case
+you must install *cython*.
+```
+git clone https://github.com/sx-aurora/py-veosinfo.git
+cd py-veosinfo
+make install
+# or
+make rpm
+```
+
+Building inside a virtualenv is easy, but it is recommended to build RPMs
+from the srouce RPM outside the virtualenv, in order to get the paths right.
+
+
+
 ## Usage
 
 In your python program import the `veosinfo` python module.
