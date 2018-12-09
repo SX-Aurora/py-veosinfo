@@ -4,23 +4,22 @@
 
 Python bindings to libveosinfo that provides various details
 on the SX-Aurora Vector Engines located in the current host:
-* lists VEs in the system and their state
-* information in the VE architecture
-* information on caches, frequencies of each VE core
-* load and memory statistics of VEs
-* information on processes running on the VEs
-* fan, temperature, voltage of VEs
-* various statistical infos
-* a mechanism to read VE register values of own processes
+* lists VEs in the system and their state,
+* information in the VE architecture,
+* information on caches, frequencies of each VE core,
+* load and memory statistics of VEs,
+* information on processes running on the VEs,
+* fan, temperature, voltage of VEs,
+* various statistical infos,
+* a mechanism to read VE register values of own processes.
 
 Not all calls of libveosinfo are implemented in these Python bindings.
 
 
 ## Build / Install
 
-When installing from PYPI the module requires
-the package *veosinfo-devel* to be installed.
-
+When installing from PYPI the module requires the package
+*veosinfo-devel* to be installed.
 ```
 pip install py-veosinfo
 ```
@@ -36,23 +35,21 @@ make rpm
 ```
 
 Building inside a virtualenv is easy, but it is recommended to build RPMs
-from the srouce RPM outside the virtualenv, in order to get the paths right.
-
+from the source RPM outside the virtualenv, in order to get the paths right.
 
 
 ## Usage
 
-In your python program import the `veosinfo` python module.
-
+In your python program import the `veosinfo` python module, for example by doing:
 ```
 from veosinfo import *
 ```
 
 Call the veosinfo functions.
 
-The semantics was pythonified somewhat, we're not just calling
-certain C library functions, but transform return structure data
-into dicts, etc.
+The semantics and results were pythonified somewhat, we're not just
+calling certain C library functions, but transform return structure
+data into dicts, etc.
 
 
 ## Functions (from libveosinfo)
