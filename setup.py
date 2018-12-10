@@ -46,7 +46,7 @@ https://github.com/efocht/build-veos/releases/tag/v1.3.2-4dma
     
 setup(
     name = "py-veosinfo",
-    version = "1.3.2",
+    version = "1.3.2a",
     ext_modules = ext_mods,
     scripts = ["veperf"],
     author = "Erich Focht",

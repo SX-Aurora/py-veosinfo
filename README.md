@@ -10,6 +10,7 @@ on the SX-Aurora Vector Engines located in the current host:
 * load and memory statistics of VEs,
 * information on processes running on the VEs,
 * fan, temperature, voltage of VEs,
+* reading and setting the VE core affinity of processes,
 * various statistical infos,
 * a mechanism to read VE register values of own processes.
 
@@ -251,6 +252,32 @@ Example:
                  've_hbm_w_vddq', 've_vpp', 've_vddh', 've_power_edge_12v', 've_eps12v',
                  've_power_edge_3.3v', 've_core_vdd0', 've_core_vdd1', 've_pll_089',
                  '', '', '', '', '', '']}
+```
+
+### `sched_getaffinity(int nodeid, pid_t pid)` and `sched_setaffinity(int nodeid, pid_t pid, uint64_t mask)`
+
+A VE thread's CPU affinity mask determines the set of cores on its VE
+node on which it is eligible to run. These functions are equivalent to
+the normal Linux
+[*sched_getaffinity(2)*](https://linux.die.net/man/2/sched_getaffinity)
+and
+[*sched_setaffinity(2)*](https://linux.die.net/man/2/sched_setaffinity)
+calls but refers to a particular *pid* running on a particular
+*nodeid*. Setting the VE core affinity of a thread requires as third
+argument a bitmask that specifies the cores. For 8 cores only the
+lowest 8 bits are relevant.
+
+The functions return 0 on success and -1 on failure.
+
+Example:
+```
+>>> from veosinfo import *
+>>> sched_getaffinity(0, 23360)
+255L
+>>> sched_setaffinity(0, 23360, 0x4)
+4L
+>>> sched_getaffinity(0, 23360)
+4L
 ```
 
 ### `stat_info(int nodeid)`
