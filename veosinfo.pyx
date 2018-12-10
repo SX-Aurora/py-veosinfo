@@ -283,6 +283,7 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_cpu_info(int, ve_cpuinfo *)
     int ve_cpufreq_info(int, unsigned long *)
     int ve_create_process(int nodeid, int pid, int flag)
+    int ve_get_regvals(int, pid_t, int, int *, uint64_t *)
     int ve_loadavg_info(int, ve_loadavg *)
     int ve_mem_info(int, ve_meminfo *)
     int ve_node_info(ve_nodeinfo *)
@@ -290,10 +291,11 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_read_fan(int, ve_pwr_fan *)
     int ve_read_temp(int, ve_pwr_temp *)
     int ve_read_voltage(int, ve_pwr_voltage *)
+    int ve_sched_getaffinity(int nodeid, pid_t pid, size_t cpusetsize, cpu_set_t *mask)
+    int ve_sched_setaffinity(int nodeid, pid_t pid, size_t cpusetsize, cpu_set_t *mask)
     int ve_stat_info(int, ve_statinfo *)
     int ve_uptime_info(int, double *)
     int ve_vmstat_info(int, ve_vmstat *)
-    int ve_get_regvals(int, pid_t, int, int *, uint64_t *)
 
     # functions below have no python equivalent, yet
     int ve_get_rusage(int, pid_t, ve_get_rusage_info *)
@@ -301,8 +303,6 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_pidstatus_info(int, pid_t, ve_pidstatus *)
     int ve_pidstatm_info(int, pid_t, ve_pidstatm *)
     int ve_prlimit(int, pid_t, int, rlimit *, rlimit *)
-    int ve_sched_getaffinity(int nodeid, pid_t pid, size_t cpusetsize, cpu_set_t *mask)
-    int ve_sched_setaffinity(int nodeid, pid_t pid, size_t cpusetsize, cpu_set_t *mask)
 
 # declared in internal include file, but useful little helper function
 cdef extern int ve_sysfs_path_info(int nodeid, char *ve_sysfs_path)
@@ -395,6 +395,17 @@ def read_voltage(int nodeid):
     if ve_read_voltage(nodeid, &v):
         raise RuntimeError("ve_read_voltage failed")
     return v
+
+def sched_getaffinity(int nodeid, pid_t pid):
+    cdef uint64_t mask;
+    if ve_sched_getaffinity(nodeid, pid, sizeof(mask), <cpu_set_t *>&mask):
+        raise RuntimeError("ve_sched_getaffinity failed!")
+    return mask
+
+def sched_setaffinity(int nodeid, pid_t pid, uint64_t mask):
+    if ve_sched_setaffinity(nodeid, pid, sizeof(mask), <cpu_set_t *>&mask):
+        raise RuntimeError("ve_sched_setaffinity failed!")
+    return mask
 
 def stat_info(int nodeid):
     ni = node_info()
