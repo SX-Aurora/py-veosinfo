@@ -4,25 +4,25 @@
 # ...
 #
 
-veosinfo.so: veosinfo.pyx
+veosinfo/_veosinfo.so: veosinfo/_veosinfo.pyx
 	python setup.py build_ext -i --use-cython
 
 test:
 	PATHONPATH=. python test_cython.py
 
 clean:
-	rm -f *.so veosinfo.c
+	rm -f veosinfo/*.so veosinfo/_veosinfo.c veosinfo/*.pyc
 
-install: veosinfo.so
+install: veosinfo/_veosinfo.so
 	python setup.py install
 
 sdist:
 	python setup.py sdist --use-cython
 
-rpm: veosinfo.so
+rpm: veosinfo/_veosinfo.so
 	python setup.py bdist_rpm
 
-srpm: veosinfo.so
+srpm: veosinfo/_veosinfo.so
 	python setup.py bdist_rpm --source-only
 
 .PHONY: test clean install sdist rpm

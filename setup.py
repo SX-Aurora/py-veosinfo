@@ -11,11 +11,11 @@ if "--use-cython" in sys.argv:
     ext = ".pyx"
 
 _ext_mods=[
-    Extension("veosinfo",
-              sources=["veosinfo" + ext],
+    Extension("veosinfo._veosinfo",
+              sources=["veosinfo/_veosinfo" + ext],
               libraries=["veosinfo"], # Unix-like specific
-              library_dirs=["/opt/nec/ve/veos/lib64"],
-              include_dirs=["/opt/nec/ve/veos/include"]
+              library_dirs=["veosinfo", "/opt/nec/ve/veos/lib64"],
+              include_dirs=["veosinfo", "/opt/nec/ve/veos/include"]
     )
 ]
 
@@ -54,6 +54,7 @@ setup(
     license = "GPLv2",
     description = "Python bindings for the veosinfo library for the SX-Aurora Vector Engine",
     long_description = _long_descr,
+    packages = [ "veosinfo" ],
     data_files = [("share/py-veosinfo", ["README.md"])],
     url = "https://github.com/sx-aurora/py-veosinfo",
     classifiers=[

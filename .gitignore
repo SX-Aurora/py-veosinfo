@@ -1,0 +1,5 @@
+*~
+*.o
+*.so
+_veosinfo.c
+*.pyc
