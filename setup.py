@@ -37,16 +37,11 @@ on the SX-Aurora Vector Engines located in the current host:
 
 The tool veperf can be used to periodically display performance metrics of
 the own VE processes.
-
-NOTE: veperf can trigger a bug in VEOS that leads very rarely to a lock-up
-of one of the processes who's performance is monitored. This issue will be
-fixed in the official VEOS 2.0 or later and is fixed in the inofficial release
-https://github.com/efocht/build-veos/releases/tag/v1.3.2-4dma
 """
     
 setup(
     name = "py-veosinfo",
-    version = "1.3.3",
+    version = "2.1.0",
     ext_modules = ext_mods,
     scripts = ["veperf"],
     author = "Erich Focht",

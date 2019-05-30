@@ -44,7 +44,7 @@ cdef extern from "<sched.h>":
     enum: __NCPUBITS
     ctypedef unsigned long int __cpu_mask
     ctypedef struct cpu_set_t:
-        __cpu_mask __bits[__CPU_SETSIZE / __NCPUBITS]
+        unsigned long int __bits[__CPU_SETSIZE / __NCPUBITS]
 
 cdef extern from "<sys/param.h>":
     enum: PATH_MAX
@@ -120,7 +120,6 @@ cdef extern from "<veosinfo/veosinfo.h>":
         char mhz[VE_DATA_LEN]
         char stepping[VE_DATA_LEN]
         char bogomips[VE_DATA_LEN]
-        int  nnodes
         char op_mode[VE_DATA_LEN]
         char cache_name[VE_MAX_CACHE][VE_BUF_LEN]
         int cache_size[VE_MAX_CACHE]
@@ -184,7 +183,6 @@ cdef extern from "<veosinfo/veosinfo.h>":
 
     struct ve_pidstat:
         char state
-        int ppid
         int processor
         long priority
         long nice
@@ -282,7 +280,8 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_core_info(int nodeid, int *cores)
     int ve_cpu_info(int, ve_cpuinfo *)
     int ve_cpufreq_info(int, unsigned long *)
-    int ve_create_process(int nodeid, int pid, int flag)
+    int ve_create_process(int nodeid, int pid, int flag, int numa_num,
+                          int membind_flag, cpu_set_t *set)
     int ve_get_regvals(int, pid_t, int, int *, uint64_t *)
     int ve_loadavg_info(int, ve_loadavg *)
     int ve_mem_info(int, ve_meminfo *)
@@ -346,10 +345,13 @@ def cpufreq_info(int nodeid):
         raise RuntimeError("ve_cpufreq_info failed")
     return freq
 
-def create_process(int nodeid, int pid, int flag):
-    if ve_create_process(nodeid, pid, flag):
+def create_process(int nodeid, int pid, int flag, int numa_num,
+                   int membind_flag):
+    #cdef cpu_set_t s
+    cdef long s[__CPU_SETSIZE / __NCPUBITS]
+    if ve_create_process(nodeid, pid, flag, numa_num, membind_flag, <cpu_set_t *>&s[0]):
         raise RuntimeError("ve_create_process failed")
-    return True
+    return s
 
 def loadavg_info(int nodeid):
     cdef ve_loadavg la

@@ -8,7 +8,7 @@ veosinfo/_veosinfo.so: veosinfo/_veosinfo.pyx
 	python setup.py build_ext -i --use-cython
 
 test:
-	PATHONPATH=. python test_cython.py
+	PATHONPATH=. python test_veosinfo.py
 
 clean:
 	rm -f veosinfo/*.so veosinfo/_veosinfo.c veosinfo/*.pyc
