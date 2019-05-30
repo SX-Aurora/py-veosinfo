@@ -19,6 +19,9 @@ install: veosinfo/_veosinfo.so
 sdist:
 	python setup.py sdist --use-cython
 
+upload:
+	python -m twine upload dist/py-veosinfo*.tar.gz
+
 rpm: veosinfo/_veosinfo.so
 	python setup.py bdist_rpm
 

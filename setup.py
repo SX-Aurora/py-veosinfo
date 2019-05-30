@@ -24,16 +24,17 @@ if USE_CYTHON:
 else:
     ext_mods = _ext_mods
 
-_long_descr = """Python bindings to libveosinfo that provides various details
+_long_descr = """
+Python bindings to libveosinfo that provides various details
 on the SX-Aurora Vector Engines located in the current host:
- - lists VEs in the system and their state
- - information in the VE architecture
- - information on caches, frequencies of each VE core
- - load and memory statistics of VEs
- - information on processes running on the VEs
- - fan, temperature, voltage of VEs
- - various statistical infos
- - a mechanism to read VE register values of own processes
+- lists VEs in the system and their state
+- information in the VE architecture
+- information on caches, frequencies of each VE core
+- load and memory statistics of VEs
+- information on processes running on the VEs
+- fan, temperature, voltage of VEs
+- various statistical infos
+- a mechanism to read VE register values of own processes
 
 The tool veperf can be used to periodically display performance metrics of
 the own VE processes.
@@ -49,6 +50,7 @@ setup(
     license = "GPLv2",
     description = "Python bindings for the veosinfo library for the SX-Aurora Vector Engine",
     long_description = _long_descr,
+    long_description_content_type = "text/markdown",
     packages = [ "veosinfo" ],
     data_files = [("share/py-veosinfo", ["README.md"])],
     url = "https://github.com/sx-aurora/py-veosinfo",
