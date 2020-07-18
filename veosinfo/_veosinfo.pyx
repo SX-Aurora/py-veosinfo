@@ -14,7 +14,7 @@
 # along with the VEOS information library python bindings module; if not,
 # see <http://www.gnu.org/licenses/>.
 #
-# (C)opyright 2018 Erich Focht
+# (C)opyright 2018-2020 Erich Focht
 #
 # The include file <veosinfo/veosinfo.h> required for building this
 # package is licensed under the LGPLv2.1 and copyright by NEC Corporation.
@@ -50,21 +50,32 @@ cdef extern from "<sys/param.h>":
     enum: PATH_MAX
 
 cdef extern from "<veosinfo/veosinfo.h>":
-    enum: VE_MAX_NODE
-    enum: VE_PATH_MAX
-    enum: VE_FILE_MAX
-    enum: VE_BUF_LEN
-    enum: VE_MAX_CORE_PER_NODE
-    enum: VMFLAGS_LENGTH
-    enum: VE_MAX_CACHE
-    enum: VE_DATA_LEN
-    enum: VE_MAX_REGVALS
-    enum: MAX_DEVICE_LEN
-    enum: MAX_POWER_DEV
-    enum: VE_PAGE_SIZE
-    enum: VKB
-    enum: EXECVE_MAX_ARGS
-    enum: MICROSEC_TO_SEC
+    enum: VE_EINVAL_COREID   # -514  Error number for invalid cores
+    enum: VE_EINVAL_NUMAID   # -515  Error number for invalid NUMA node
+    enum: VE_EINVAL_LIMITOPT # -516  Error number for invalid VE_LIMIT_OPT
+    enum: VE_ERANGE_LIMITOPT # -517  Error number if limit is out of range
+    enum: VEO_PROCESS_EXIST  #  515  Identifier for VEO API PID
+    enum: VE_VALID_THREAD    #  516  Identifier for process/thread
+    enum: VE_MAX_NODE        #  8    Maximum number of VE nodes
+    enum: VE_PATH_MAX        # 4096
+    enum: VE_FILE_NAME       # 255   Maximum length of file name
+    enum: FILENAME           # 15    Length of file used to get
+                             #       pmap/ipcs/ipcrm command information
+    enum: VE_BUF_LEN         # 255
+    enum: VE_MAX_CORE_PER_NODE  # 16
+    enum: VMFLAGS_LENGTH        # 81
+    enum: VE_MAX_CACHE          # 4  max number of VE caches
+    enum: VE_DATA_LEN           # 20
+    enum: VE_MAX_REGVALS        # 64
+    enum: MAX_DEVICE_LEN        # 255
+    enum: MAX_POWER_DEV         # 20
+    enum: VE_PAGE_SIZE          # 2097152
+    enum: VKB                   # 1024
+    enum: EXECVE_MAX_ARGS       # 256
+    enum: MICROSEC_TO_SEC       # 1000000
+    enum: VE_NUMA_NUM           # 2  maximum number of NUMA nodes in a VE
+    enum: MAX_CORE_IN_HEX 4     # 4  maximum core value in HEX
+    enum: MAX_SWAP_PROCESS      # 256 maximum number of swapped processes
     DEF VE_EXEC_PATH = "/opt/nec/ve/bin/ve_exec"
     DEF VE_NODE_SPECIFIER = "-N"
 
@@ -75,7 +86,7 @@ cdef extern from "<veosinfo/veosinfo.h>":
         int total_node_count
 
     cdef struct ve_archinfo:
-        char machine[VE_FILE_MAX]
+        char machine[VE_FILE_NAME]
         char processor[257]
         char hw_platform[257]
 
@@ -217,6 +228,7 @@ cdef extern from "<veosinfo/veosinfo.h>":
         char cmd[255]
         unsigned long start_time
         bint whole
+        pid_t tgid;
 
     struct ve_pidstatus:
         unsigned long vm_swap
@@ -272,6 +284,22 @@ cdef extern from "<veosinfo/veosinfo.h>":
         double volt_max[MAX_POWER_DEV]
         double cpu_volt[MAX_POWER_DEV]
 
+    enum ipc_mode:
+        SHMKEY_RM      # Delete shm segment using key
+        SHMID_RM       # Delete shm segment using shmid
+        SHM_RM_ALL     # Delete all shm segment
+        SHMID_INFO     # Information of given shm segment
+        SHM_LS         # List All segment
+        SHM_SUMMARY    # Summary of shared Memory
+        SHMID_QUERY    # Query whether shmid is valid or not
+        SHMKEY_QUERY   # Query whether shmkey is valid or not
+
+    struct ve_numa_stat:
+        int tot_numa_nodes
+        char ve_core[VE_NUMA_NUM][MAX_CORE_IN_HEX]  # list of cores in each NUMA node
+        unsigned long long mem_size[VE_NUMA_NUM]    # memory size of each NUMA node
+        unsigned long long mem_free[VE_NUMA_NUM]    # Free memory in each NUMA node
+
 
     int ve_get_nos(unsigned int *, int *)
     int ve_acct(int nodeid, char *filename)
@@ -295,6 +323,8 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_stat_info(int, ve_statinfo *)
     int ve_uptime_info(int, double *)
     int ve_vmstat_info(int, ve_vmstat *)
+    int ve_check_node_status(int)
+    int ve_numa_info(int, ve_numa_stat *)
 
     # functions below have no python equivalent, yet
     int ve_get_rusage(int, pid_t, ve_get_rusage_info *)
@@ -303,6 +333,17 @@ cdef extern from "<veosinfo/veosinfo.h>":
     int ve_pidstatm_info(int, pid_t, ve_pidstatm *)
     int ve_prlimit(int, pid_t, int, rlimit *, rlimit *)
 
+    # not yet implemented
+    # int ve_delete_dummy_task(int, pid_t)
+    # int ve_shm_list_or_remove(int , int , unsigned int *, char *)
+    # int ve_chk_exec_format(char *)
+    # int ve_swap_statusinfo(int, ve_swap_pids *, ve_swap_status_info *)
+    # int ve_swap_info(int, ve_swap_pids *, ve_swap_info *)
+    # int ve_swap_nodeinfo(int, ve_swap_node_info *)
+    # int ve_swap_out(int, ve_swap_pids *)
+    # int ve_swap_in(int, ve_swap_pids *)
+
+    
 # declared in internal include file, but useful little helper function
 cdef extern int ve_sysfs_path_info(int nodeid, char *ve_sysfs_path)
 
@@ -326,6 +367,12 @@ cpdef bint check_pid(int nodeid, int pid) except -1:
     elif rc == 0:
         res = True
     return res
+
+# @brief Check status (online/offline) of a given VE node.
+# @param nodeid VE node number to check status.
+# @return 0 on success (online) and -1 on failure (offline)
+def check_node_status(int nodeid):
+    return ve_check_node_status(nodeid)
 
 def core_info(int nodeid):
     cdef int cores
@@ -537,3 +584,13 @@ def ve_pid_perf(int nodeid, int pid):
         res[regname] = regval[2 + i]
     return res
 
+
+# @brief Get the NUMA statistics for given VE node.
+# @param nodeid[in] VE node number
+# @return populated numa stat structure
+# raises RuntimeError when failing
+def numa_info(int nodeid):
+    cdef ve_numa_stat ns
+    if ve_numa_info(nodeid, &ns):
+        raise RuntimeError("ve_numa_info failed")
+    return ns

@@ -19,6 +19,9 @@ def calc_metrics(nodeid, old, new):
     CPU PORT CONF       = PCCC/1.4GHz
     VLD LLC HIT E   [%] = (1-VLCME/VLEC)*100
 
+    LOAD BW [Byte/s]      = LTRC*4/(USRCC/1.4GHz)
+    STORE BW [Byte/s]     = STRC*4/(USRCC/1.4GHz)
+
     """
     global ve_cpu_info_cache
     r = dict()
@@ -26,8 +29,9 @@ def calc_metrics(nodeid, old, new):
         ve_cpu_info_cache[nodeid] = cpu_info(nodeid)
     clck = float(ve_cpu_info_cache[nodeid]['mhz'])
     clck_hz = clck * 1000000
+    clck_ghz = clck / 1000
     for _r in ["EX", "VX", "VE", "FMAEC", "FPEC", "USRCC", "VECC",
-              "L1MCC", "PCCC", "VLCME", "VLEC", "T"]:
+               "L1MCC", "PCCC", "VLCME", "VLEC", "LTRC", "STRC", "T"]:
         exec("d%s = float(new.get(\"%s\", 0) - old.get(\"%s\", 0))" % (_r, _r, _r))
         #exec("print \"d%s=%%r new %s=%%r old %s=%%r\" %% (d%s, new.get(\"%s\", 0), old.get(\"%s\", 0))" %
         #     (_r, _r, _r, _r, _r, _r))
@@ -55,5 +59,11 @@ def calc_metrics(nodeid, old, new):
 
     if dVLEC > 0:
         r["VLDLLCHIT"] = (1 - dVLCME / dVLEC) * 100
+
+    if dLTRC > 0:
+        r["LOADBW"] = (dLTRC * 4) / (dUSRCC / clck_ghz)
+
+    if dSTRC > 0:
+        r["STOREBW"] = (dSTRC * 4) / (dUSRCC / clck_ghz)
 
     return r

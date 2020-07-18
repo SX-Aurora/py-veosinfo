@@ -46,23 +46,33 @@ def print_metrics():
     for nodeid in sorted(METR.keys()):
         s_mops = 0
         s_mflops = 0
-        print "-> VE%d" % nodeid
+        s_loadbw = 0
+        s_storebw = 0
+        print("-> VE%d" % nodeid)
         for pid in sorted(METR[nodeid].keys()):
             m = METR[nodeid][pid]
             comm = get_pid_comm(pid)
-            print "%-8d  %8.2fs  %7.3f  %7.0f  %8.0f  %5.0f  %7.1f%%  %9.1f%%  %6.0f%%  %7.0f%%  %7.0f%%  %-10s" % \
+            print("%-8d  %8.2fs  %7.3f  %7.0f  %8.0f  %5.0f  %7.1f%%  %9.1f%%  %6.0f%%  %7.0f%%  %7.0f%%  %7.3f  %7.3f  %-10s" % \
                 (pid, m["USRSEC"], m.get("EFFTIME", 0), m.get("MOPS", 0), m.get("MFLOPS", 0),
                  m.get("AVGVL", 0), m.get("VOPRAT", 0), m.get("VTIMERATIO", 0),
-                 m.get("L1CACHEMISS", 0), m.get("CPUPORTCONF", 0), m.get("VLDLLCHIT", 0), comm)
+                 m.get("L1CACHEMISS", 0), m.get("CPUPORTCONF", 0), m.get("VLDLLCHIT", 0),
+                 m.get("LOADBW", 0), m.get("STOREBW", 0),
+                 comm))
             s_mops += m.get("MOPS", 0)
             s_mflops += m.get("MFLOPS", 0)
-        print "SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f" % (nodeid, s_mops, s_mflops)
+            s_loadbw += m.get("LOADBW", 0)
+            s_storebw += m.get("STOREBW", 0)
+        if (s_loadbw > 0):
+            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f LOADBW=%-8.3f STOREBW=%-8.3f" %
+                  (nodeid, s_mops, s_mflops, s_loadbw, s_storebw))
+        else:
+            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f" % (nodeid, s_mops, s_mflops))
 
 
 def print_label():
-    print "%-8s  %9s  %7s  %7s  %8s  %5s  %8s  %10s  %7s  %8s  %8s  %-10s" % \
+    print("%-8s  %9s  %7s  %7s  %8s  %5s  %8s  %10s  %7s  %8s  %8s  %8s  %8s  %-10s" % \
         ("pid", "USRSEC", "EFFTIME", "MOPS", "MFLOPS", "AVGVL", "VOPRAT",
-         "VTIMERATIO", "L1CMISS", "PORTCONF", "VLLCHIT", "comm")
+         "VTIMERATIO", "L1CMISS", "PORTCONF", "VLLCHIT", "LOADBW", "STOREBW", "comm"))
 
 #
 ################################################################################
@@ -91,11 +101,18 @@ VTIMERATIO:  Vector time ratio (vector time / user time) [percent]
 L1CMISS:     L1 cache miss time [percent]
 PORTCONF:    CPU port conflict time [percent]
 VLLCHIT:     Vector load LLC hits [percent] (counter not active with MPI)
+LOADBW:      Load bandwidth (LLC to Core) [GB/s] (see below)
+STOREBW:     Store bandwidth (Core to LLC) [GB/s] (see below)
 
 The PMMR register of each VE core is controlling Which performance metrics
 are actually active. Currently there is no easy way to control this register
 from user side, MPI and non-MPI programs might measure slightly different
 metrics.
+
+In order to measure load and store bandwidths, you must run with the environment
+variable VE_PERF_MODE=VECTOR-MEM set, and at least compile and link with -proginf
+or -ftrace.
+
 """
 
 signal.signal(signal.SIGINT, sigint_handler)
