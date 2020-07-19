@@ -25,7 +25,9 @@ import sys
 
 
 sysfs_path = dict()
-
+pwr_sum = dict()
+pwr_nmeas = 0
+t_start = 0
 
 def sigint_handler(signum, frame):
     sys.exit()
@@ -50,7 +52,15 @@ def power(nodeid):
         p += float(f.read())
     with open(sysfs_path[nodeid] + "/sensor_13") as f:
         p += float(f.read())
-    return p * 12 / 1000
+    pwr = p * 12 / 1000
+    pwr_sum[nodeid] += pwr
+    return pwr
+
+# energy consumed since start of measurement on specified VE
+def energy(nodeid):
+    pwr_avg = pwr_sum[nodeid] / pwr_nmeas
+    e = pwr_avg * (time.time() - t_start) / 1000
+    return e
 
 def print_metrics():
     for nodeid in sorted(METR.keys()):
@@ -73,10 +83,11 @@ def print_metrics():
             s_loadbw += m.get("LOADBW", 0)
             s_storebw += m.get("STOREBW", 0)
         if (s_loadbw > 0):
-            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f LOADBW=%.3fGB/s STOREBW=%.3fGB/s POWER=%.1fW" %
-                  (nodeid, s_mops, s_mflops, s_loadbw, s_storebw, power(nodeid)))
+            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f LOADBW=%.3fGB/s STOREBW=%.3fGB/s POWER=%.1fW ENERGY=%.2fkJ" %
+                  (nodeid, s_mops, s_mflops, s_loadbw, s_storebw, power(nodeid), energy(nodeid)))
         else:
-            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f POWER=%.1fW" % (nodeid, s_mops, s_mflops, power(nodeid)))
+            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f POWER=%.1fW ENERGY=%.2fkJ" %
+                  (nodeid, s_mops, s_mflops, power(nodeid), energy(nodeid)))
 
 
 def print_label():
@@ -94,8 +105,8 @@ VEOS allows to read performance counters of own VE processes from the VH
 with no or extremely low overhead for the VE processes. Root can access
 all VE processes' metrics and will see all VE tasks.
 
-The MOPS and MFLOPS metrics are aggregated per node at the end of each
-node output block.
+The MOPS and MFLOPS metrics as well as bandwidths (if available), POWER and
+ENERGY are aggregated per node at the end of each node output block.
 
 Displayed metrics:
 ------------------
@@ -114,14 +125,13 @@ VLLCHIT:     Vector load LLC hits [percent] (counter not active with MPI)
 LOADBW:      Load bandwidth (LLC to Core) [GB/s] (see below)
 STOREBW:     Store bandwidth (Core to LLC) [GB/s] (see below)
 
-The PMMR register of each VE core is controlling Which performance metrics
-are actually active. Currently there is no easy way to control this register
-from user side, MPI and non-MPI programs might measure slightly different
-metrics.
+POWER:       Power consumption of each VE
+ENERGY:      Energy used by each VE since start of veperf measurement
 
-In order to measure load and store bandwidths, you must run with the environment
-variable VE_PERF_MODE=VECTOR-MEM set, and at least compile and link with -proginf
-or -ftrace.
+The PMMR register of each VE core is controlling Which performance metrics
+are actually active, MPI and non-MPI programs might measure slightly different
+metrics. In order to measure load and store bandwidths, you must run with the
+environment variable VE_PERF_MODE=VECTOR-MEM set.
 
 """
 
@@ -161,6 +171,8 @@ if args.node is not None:
 
 for nodeid in nodeids:
     sysfs_path[nodeid] = ve_sysfs_path(nodeid)
+    pwr_sum[nodeid] = 0
+t_start = time.time()
         
 DATA = dict()
 PREV = dict()
@@ -195,6 +207,7 @@ while 1:
             del DATA[nodeid][pid]
 
     if cnt > 0:
+        pwr_nmeas += 1
         print_label()
         print_metrics()
 
