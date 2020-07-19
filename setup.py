@@ -42,7 +42,7 @@ the own VE processes.
     
 setup(
     name = "py-veosinfo",
-    version = "2.5.0a",
+    version = "2.5.0b",
     ext_modules = ext_mods,
     scripts = ["veperf"],
     author = "Erich Focht",
