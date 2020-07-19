@@ -24,6 +24,9 @@ import signal
 import sys
 
 
+sysfs_path = dict()
+
+
 def sigint_handler(signum, frame):
     sys.exit()
 
@@ -41,6 +44,13 @@ def get_pid_comm(pid):
         pass
     return "-"
 
+def power(nodeid):
+    p = 0
+    with open(sysfs_path[nodeid] + "/sensor_12") as f:
+        p += float(f.read())
+    with open(sysfs_path[nodeid] + "/sensor_13") as f:
+        p += float(f.read())
+    return p * 12 / 1000
 
 def print_metrics():
     for nodeid in sorted(METR.keys()):
@@ -63,10 +73,10 @@ def print_metrics():
             s_loadbw += m.get("LOADBW", 0)
             s_storebw += m.get("STOREBW", 0)
         if (s_loadbw > 0):
-            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f LOADBW=%-8.3f STOREBW=%-8.3f" %
-                  (nodeid, s_mops, s_mflops, s_loadbw, s_storebw))
+            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f LOADBW=%.3fGB/s STOREBW=%.3fGB/s POWER=%.1fW" %
+                  (nodeid, s_mops, s_mflops, s_loadbw, s_storebw, power(nodeid)))
         else:
-            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f" % (nodeid, s_mops, s_mflops))
+            print("SUM VE%d: MOPS=%-8.0f MFLOPS=%-8.0f POWER=%.1fW" % (nodeid, s_mops, s_mflops, power(nodeid)))
 
 
 def print_label():
@@ -149,6 +159,9 @@ if args.node is not None:
     for n in args.node:
         nodeids.append(int(n))
 
+for nodeid in nodeids:
+    sysfs_path[nodeid] = ve_sysfs_path(nodeid)
+        
 DATA = dict()
 PREV = dict()
 METR = dict()
