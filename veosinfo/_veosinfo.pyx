@@ -74,7 +74,7 @@ cdef extern from "<veosinfo/veosinfo.h>":
     enum: EXECVE_MAX_ARGS       # 256
     enum: MICROSEC_TO_SEC       # 1000000
     enum: VE_NUMA_NUM           # 2  maximum number of NUMA nodes in a VE
-    enum: MAX_CORE_IN_HEX 4     # 4  maximum core value in HEX
+    enum: MAX_CORE_IN_HEX       # 4  maximum core value in HEX
     enum: MAX_SWAP_PROCESS      # 256 maximum number of swapped processes
     DEF VE_EXEC_PATH = "/opt/nec/ve/bin/ve_exec"
     DEF VE_NODE_SPECIFIER = "-N"

@@ -174,6 +174,16 @@ Example:
  'kb_main_cached': 0L, 'kb_main_shared': 0L, 'kb_inactive': 0L, 'hugepage_total': 0L}
 ```
 
+### `numa_info(int nodeid)`
+
+Return NUMA stats dict for the specified VE *nodeid*.
+
+Example:
+```
+>>> numa_info(0)
+{'mem_free': [25635586048L, 25769803776L], 'mem_size': [25769803776L, 25769803776L], 've_core': ['f', 'f0'], 'tot_numa_nodes': 2}
+```
+
 
 ### `node_info()`
 
