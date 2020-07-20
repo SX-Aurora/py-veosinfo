@@ -42,7 +42,7 @@ the own VE processes.
     
 setup(
     name = "py-veosinfo",
-    version = "2.5.0b",
+    version = "2.5.1",
     ext_modules = ext_mods,
     scripts = ["veperf"],
     author = "Erich Focht",
@@ -55,7 +55,7 @@ setup(
     data_files = [("share/py-veosinfo", ["README.md"])],
     url = "https://github.com/sx-aurora/py-veosinfo",
     classifiers=[
-      'Development Status :: 4 - Beta',
+      'Development Status :: 5 - Production/Stable',
       'Environment :: Console',
       'Intended Audience :: Education',
       'Intended Audience :: Developers',

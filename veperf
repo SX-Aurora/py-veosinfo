@@ -72,7 +72,7 @@ def print_metrics():
         for pid in sorted(METR[nodeid].keys()):
             m = METR[nodeid][pid]
             comm = get_pid_comm(pid)
-            print("%-8d  %8.2fs  %7.3f  %7.0f  %8.0f  %5.0f  %7.1f%%  %9.1f%%  %6.0f%%  %7.0f%%  %7.0f%%  %7.3f  %7.3f  %-10s" % \
+            print("%-8d  %8.2fs  %7.3f  %7.0f  %8.0f  %5.0f  %7.1f%%  %9.1f%%  %6.0f%%  %7.0f%%  %7.0f%%  %8.3f  %8.3f  %-10s" % \
                 (pid, m["USRSEC"], m.get("EFFTIME", 0), m.get("MOPS", 0), m.get("MFLOPS", 0),
                  m.get("AVGVL", 0), m.get("VOPRAT", 0), m.get("VTIMERATIO", 0),
                  m.get("L1CACHEMISS", 0), m.get("CPUPORTCONF", 0), m.get("VLDLLCHIT", 0),
