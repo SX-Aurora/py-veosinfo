@@ -32,7 +32,6 @@ t_start = 0
 def sigint_handler(signum, frame):
     sys.exit()
 
-
 def get_pid_comm(pid):
     #COMM=`cat /proc/$pid/cmdline | sed -e 's,^.*--,,'`
     try:
@@ -46,13 +45,23 @@ def get_pid_comm(pid):
         pass
     return "-"
 
+def get_sensor(nodeid, name):
+    with open(sysfs_path[nodeid] + "/" + name) as f:
+        return float(f.read())
+
 def power(nodeid):
-    p = 0
-    with open(sysfs_path[nodeid] + "/sensor_12") as f:
-        p += float(f.read())
-    with open(sysfs_path[nodeid] + "/sensor_13") as f:
-        p += float(f.read())
-    pwr = p * 12 / 1000 + 5
+    family = int(ve_info[nodeid]["family"])
+    if family <= 2:
+        volt = get_sensor(nodeid, "sensor_8") / 1000000.0
+        voltEdge = get_sensor(nodeid, "sensor_9") / 1000000.0
+        current = get_sensor(nodeid, "sensor_12") / 1000.0
+        currentEdge = get_sensor(nodeid, "sensor_13") / 1000.0
+    else:
+        volt = get_sensor(nodeid, "sensor_36") / 1000000.0
+        voltEdge = get_sensor(nodeid, "sensor_37") / 1000000.0
+        current = get_sensor(nodeid, "sensor_41") / 1000.0
+        currentEdge = get_sensor(nodeid, "sensor_42") / 1000.0
+    pwr = 5 + volt * current + voltEdge * currentEdge
     pwr_sum[nodeid] += pwr
     return pwr
 
