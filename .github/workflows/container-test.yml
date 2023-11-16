@@ -1,5 +1,7 @@
 name: container test
-
+on:
+  workflow-dispatch:
+  
 jobs:
   container-test-job:
     runs-on: ubuntu-latest
