@@ -1,6 +1,6 @@
 name: container test
 on:
-  workflow-dispatch:
+  workflow_dispatch:
   
 jobs:
   container-test-job:
