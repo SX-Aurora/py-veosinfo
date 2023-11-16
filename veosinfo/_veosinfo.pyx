@@ -40,11 +40,10 @@ import time
 ctypedef int pid_t
         
 cdef extern from "<sched.h>":
-    enum: __CPU_SETSIZE
-    enum: __NCPUBITS
+    DEF CPUSET_LONGS = 128
     ctypedef unsigned long int __cpu_mask
     ctypedef struct cpu_set_t:
-        unsigned long int __bits[__CPU_SETSIZE / __NCPUBITS]
+        unsigned long int __bits[CPUSET_LONGS]
 
 cdef extern from "<sys/param.h>":
     enum: PATH_MAX
@@ -395,7 +394,7 @@ def cpufreq_info(int nodeid):
 def create_process(int nodeid, int pid, int flag, int numa_num,
                    int membind_flag):
     #cdef cpu_set_t s
-    cdef long s[__CPU_SETSIZE / __NCPUBITS]
+    cdef long s[CPUSET_LONGS]
     if ve_create_process(nodeid, pid, flag, numa_num, membind_flag, <cpu_set_t *>&s[0]):
         raise RuntimeError("ve_create_process failed")
     return s
