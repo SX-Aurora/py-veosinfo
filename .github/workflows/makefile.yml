@@ -19,5 +19,7 @@ jobs:
 
     - name: archive artifacts
       uses: actions/upload-artifacts@v3
-      path: |
-        dist
+      with:
+        name: dist-dir
+        path: |
+          dist
