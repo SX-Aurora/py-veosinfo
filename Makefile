@@ -16,7 +16,7 @@ sdist rpm srpm upload: in_venv
 
 else
 
-veosinfo/_veosinfo.so: in_venv veosinfo/_veosinfo.pyx
+veosinfo/_veosinfo.so: veosinfo/_veosinfo.pyx
 	python setup.py build_ext -i --use-cython
 
 .PHONY: sdist upload
