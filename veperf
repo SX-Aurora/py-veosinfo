@@ -52,7 +52,7 @@ def power(nodeid):
         p += float(f.read())
     with open(sysfs_path[nodeid] + "/sensor_13") as f:
         p += float(f.read())
-    pwr = p * 12 / 1000
+    pwr = p * 12 / 1000 + 5
     pwr_sum[nodeid] += pwr
     return pwr
 
