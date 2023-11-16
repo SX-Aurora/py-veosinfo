@@ -1,21 +1,25 @@
-#
-# install cython in a virtualenv named cython
-# workon cython
-# ...
-#
+# Most targets are expected to be built inside a virtualenv,
+# its building as well as restarting make in it is automated.
 
-veosinfo/_veosinfo.so: veosinfo/_veosinfo.pyx
+ifeq ($(VIRTUAL_ENV),)
+
+# If virtual environment is not active, restart within virtual environment
+SELF := $(MAKE) -f $(lastword $(MAKEFILE_LIST))
+MAKE := $(shell echo $$MAKE)
+
+in_venv: | venv
+	@echo "Virtual environment not active. Restarting within virtual environment..."
+	@echo "MAKECMDGOALS = $(MAKECMDGOALS)"
+	. venv/bin/activate && $(SELF) $(MAKEFLAGS) $(MAKECMDGOALS)
+
+sdist rpm srpm upload: in_venv
+
+else
+
+veosinfo/_veosinfo.so: in_venv veosinfo/_veosinfo.pyx
 	python setup.py build_ext -i --use-cython
 
-test:
-	PATHONPATH=. python test_veosinfo.py
-
-clean:
-	rm -f veosinfo/*.so veosinfo/_veosinfo.c veosinfo/*.pyc
-
-install: veosinfo/_veosinfo.so
-	python setup.py install
-
+.PHONY: sdist upload
 sdist:
 	python setup.py sdist --use-cython
 
@@ -31,5 +35,20 @@ rpm: veosinfo/_veosinfo.so
 srpm: veosinfo/_veosinfo.so
 	python setup.py bdist_rpm --source-only
 
-.PHONY: test clean install sdist rpm
+endif
 
+.PHONY: test clean install
+test:
+	PYTHONPATH=. python test_veosinfo.py
+
+clean:
+	rm -f veosinfo/*.so veosinfo/_veosinfo.c veosinfo/*.pyc
+
+install: veosinfo/_veosinfo.so
+	python setup.py install
+
+venv:
+	python3 -m venv venv && \
+	. venv/bin/activate && \
+	pip install -U pip && \
+	pip install -r requirements.txt
