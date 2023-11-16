@@ -1,0 +1,11 @@
+name: container test
+
+jobs:
+  container-test-job:
+    runs-on: ubuntu-latest
+    container:
+      image: rockylinux/rockylinux:8.8
+    steps:
+      - name: list files
+        run: ls -al /etc
+  
