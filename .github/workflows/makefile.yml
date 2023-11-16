@@ -16,3 +16,8 @@ jobs:
 
     - name: build sdist
       run: make sdist
+
+    - name: archive artifacts
+      uses: actions/upload-artifacts@v3
+      path: |
+        dist
