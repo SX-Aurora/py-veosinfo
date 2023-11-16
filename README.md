@@ -1,5 +1,7 @@
 # py-veosinfo
 
+![build sdist workflow](https://github.com/sx-aurora/py-veosinfo/actions/workflows/makefile.yml/badge.svg)
+
 ## Introduction
 
 Python bindings to libveosinfo that provides various details
